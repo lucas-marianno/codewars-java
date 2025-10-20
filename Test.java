@@ -1,22 +1,24 @@
 public class Test {
 
-  public static void assertEquals(String phraseA, String phraseB) throws Exception {
-    if (phraseA.length() != phraseB.length())
-      throw new Exception("\nNot equals!\nDifferent Length");
+  public static void assertEquals(String actual, String expected) throws Exception {
 
-    int max = Math.max(phraseA.length(), phraseB.length());
+    int max = Math.max(actual.length(), expected.length());
 
     String buffer = "";
     for (int i = 0; i < max; i++) {
-      if (phraseA.charAt(i) != phraseB.charAt(i)) {
+      if (actual.charAt(i) != expected.charAt(i)) {
         throw new Exception(
-            "\nNot equals!\n\n" +
-                phraseA + "\n" +
-                phraseB + "\n" +
-                buffer + "^");
+            "\n\nNot equals!\n" +
+                "Expected: '" + expected + "'\n" +
+                "Got:      '" + actual + "'\n" +
+                "           " + buffer + "^");
       }
       buffer += " ";
     }
     System.out.println("Passed!");
+  }
+
+  public static void assertEquals(Number n1, Number n2) throws Exception {
+    assertEquals("" + n1, "" + n2);
   }
 }
