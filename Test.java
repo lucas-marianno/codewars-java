@@ -1,6 +1,10 @@
 public class Test {
 
-  public static void assertEquals(String actual, String expected) throws Exception {
+  public static void assertEquals(String actual, String expected, String description) throws Exception {
+
+    if (description != "") {
+      System.out.println(description);
+    }
 
     int max = Math.max(actual.length(), expected.length());
 
@@ -18,7 +22,17 @@ public class Test {
     System.out.println("Passed!");
   }
 
-  public static void assertEquals(Number n1, Number n2) throws Exception {
-    assertEquals("" + n1, "" + n2);
+  public static void assertEquals(String actual, String expected) throws Exception {
+    assertEquals(actual, expected, "");
   }
+
+  //////////////////////////  NUMBER ///////////////////////////////
+  public static void assertEquals(Number actual, Number expected, String description) throws Exception {
+    assertEquals(String.valueOf(actual), String.valueOf(expected), description);
+  }
+
+  public static void assertEquals(Number actual, Number expected) throws Exception {
+    assertEquals(String.valueOf(actual), String.valueOf(expected));
+  }
+
 }

@@ -33,7 +33,7 @@ public class DigPow {
     testDigPow();
   }
 
-  public static long digPow(int n, int p) {
+  private static long digPow(int n, int p) {
     int temp = n;
     LinkedList<Integer> digits = new LinkedList<>();
 
