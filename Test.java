@@ -6,27 +6,38 @@ public class Test {
       System.out.println(description);
     }
 
-    int max = Math.max(actual.length(), expected.length());
+    int actualLen = actual.length();
+    int expectedLen = expected.length();
+    int min = Math.min(actualLen, expectedLen);
+
+    boolean differentLen = actualLen == expectedLen;
 
     String buffer = "";
-    for (int i = 0; i < max; i++) {
+    for (int i = 0; i < min; i++) {
       if (actual.charAt(i) != expected.charAt(i)) {
-        throw new Exception(
+        throw new Exception(description + " Failed! ❌" +
             "\n\nNot equals!\n" +
-                "Expected: '" + expected + "'\n" +
-                "Got:      '" + actual + "'\n" +
-                "           " + buffer + "^");
+            "Expected: '" + expected + "'\n" +
+            "Got:      '" + actual + "'\n" +
+            "           " + buffer + "^");
       }
       buffer += " ";
     }
-    System.out.println("Passed!");
+    if (differentLen) {
+      throw new Exception(description + " Failed! ❌" +
+          "\n\nNot equals!\n" +
+          "Expected: '" + expected + "'\n" +
+          "Got:      '" + actual + "'\n" +
+          "           " + buffer + "^");
+    }
+    System.out.println(description + " Passed! ✅");
   }
 
   public static void assertEquals(String actual, String expected) throws Exception {
     assertEquals(actual, expected, "");
   }
 
-  //////////////////////////  NUMBER ///////////////////////////////
+  ////////////////////////// NUMBER ///////////////////////////////
   public static void assertEquals(Number actual, Number expected, String description) throws Exception {
     assertEquals(String.valueOf(actual), String.valueOf(expected), description);
   }

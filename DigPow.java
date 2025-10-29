@@ -27,6 +27,9 @@ import java.util.LinkedList;
 public class DigPow {
 
   public static void main(String[] args) {
+    int bbbb = 2;
+
+    System.out.println(bbbb);
 
     // System.out.println(Math.pow(8, 1));
     // System.out.println(digPow(46288, 3));
