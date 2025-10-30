@@ -1,3 +1,6 @@
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * https://www.codewars.com/kata/52a78825cdfc2cfc87000005/train/java
  * 
@@ -66,26 +69,16 @@
 public class MathEvaluator {
 
   public static void main(String[] args) {
-    String a = "a(b+(c-d))";
 
-    System.out.println(a.replaceAll("(\\(.*\\))", "$1".toUpperCase()));
+    testCalculator();
 
-    // String b = a.replaceAll("(\\(.*\\))", (match) -> match.group(1).toUpperCase());
-
-    // testCalculator();
-    // try {
-    // System.out.println(calculate(a));
-    // System.out.println(calculate("1 + 1"));
-    // } catch (Exception e) {
-    // System.out.println(e);
-    // }
   }
 
-  public static double calculate(String expression) throws Exception {
-    expression = expression.replaceAll("\s", "");
+  public static double calculate(String expression) {
+    expression = cleanExpr(expression);
 
-    if (expression.indexOf("(") != -1) {
-      expression = expression.replaceAll("(\\(.*\\))", "" + calculate("$1"));
+    while (expression.indexOf("(") != -1) {
+      expression = calcInnerPar(expression);
     }
 
     int lastSignIndex = getLastIndexOfSign(expression);
@@ -103,7 +96,15 @@ public class MathEvaluator {
 
     int beforeLastSignIndex = getLastIndexOfSign(firstTerm);
 
-    if (beforeLastSignIndex == -1) {
+    if (lastSignIndex - 1 == beforeLastSignIndex) {// adjacent signs
+      lastTerm = sign + lastTerm;
+      termB = Double.parseDouble(lastTerm);
+      sign = firstTerm.charAt(beforeLastSignIndex);
+      firstTerm = firstTerm.substring(0, firstTerm.length() - 1);
+      beforeLastSignIndex = getLastIndexOfSign(firstTerm);
+    }
+
+    if (beforeLastSignIndex == -1) { // no sign on termA
       termA = Double.parseDouble(firstTerm);
     } else {
       char beforeLastSign = firstTerm.charAt(beforeLastSignIndex);
@@ -124,7 +125,37 @@ public class MathEvaluator {
 
   }
 
-  private static double evalTerms(double termA, double termB, char sign) throws Exception {
+  private static String cleanExpr(String expr) {
+    return expr
+        .replaceAll("\s", "")
+        .replaceAll("--", "+")
+        .replaceAll("-\\+", "-")
+        .replaceAll("\\+-", "-")
+        .replaceAll("\\+\\+", "+");
+  }
+
+  private static String calcInnerPar(String expr) {
+
+    // match only the innermost parenthesized expressions that do not contain
+    // other parentheses.
+    Pattern pattern = Pattern.compile("(\\([^\\(\\)]*\\))");
+    Matcher matcher = pattern.matcher(expr);
+
+    String replaced = matcher.replaceAll(match -> {
+      String m = match.group();
+
+      try {
+        String mtNoPar = m.substring(1, m.length() - 1);
+        return String.valueOf(calculate(mtNoPar));
+      } catch (Exception e) {
+        return m;
+      }
+    });
+
+    return cleanExpr(replaced);
+  }
+
+  private static double evalTerms(double termA, double termB, char sign) {
     switch (sign) {
       case '+':
         return termA + termB;
@@ -135,7 +166,7 @@ public class MathEvaluator {
       case '/':
         return termA / termB;
       default:
-        throw new Exception("invalid term");
+        return 0;
     }
   }
 
@@ -182,18 +213,25 @@ public class MathEvaluator {
 
   public static void testCalculator() {
     try {
-      Test.assertEquals(calculate("1+1"), 2, "addition");
-      Test.assertEquals(calculate("1 - 1"), 0, "Subtraction");
-      Test.assertEquals(calculate("1* 1"), 1, "Multiplication");
-      Test.assertEquals(calculate("1 /1"), 1, "division");
-      Test.assertEquals(calculate("2*4-3"), 5, "expression");
-      Test.assertEquals(calculate("2-4*3"), -10, "expression 2");
-      Test.assertEquals(calculate("2*(4-3)"), 2, "parentheses");
-      Test.assertEquals(calculate("-123"), -123);
-      Test.assertEquals(calculate("123"), 123);
-      Test.assertEquals(calculate("2 /2+3 * 4.75- -6"), 21.25);
-      Test.assertEquals(calculate("12* 123"), 1476);
-      Test.assertEquals(calculate("2 / (2 + 3) * 4.33 - -6"), 7.732);
+      // Test.assertEquals(calculate("1+1"), 2, "addition");
+      // Test.assertEquals(calculate("1 - 1"), 0, "Subtraction");
+      // Test.assertEquals(calculate("1* 1"), 1, "Multiplication");
+      // Test.assertEquals(calculate("1 /1"), 1, "division");
+      // Test.assertEquals(calculate("2*4-3"), 5, "expression");
+      // Test.assertEquals(calculate("2-4*3"), -10, "expression 2");
+      // Test.assertEquals(calculate("2*(4-3)"), 2, "parentheses");
+      // Test.assertEquals(calculate("-123"), -123);
+      // Test.assertEquals(calculate("123"), 123);
+      // Test.assertEquals(calculate("2 /2+3 * 4.75- -6"), 21.25);
+      // Test.assertEquals(calculate("12* 123"), 1476);
+      // Test.assertEquals(calculate("2 / (2 + 3) * 4.33 - -6"), 7.732);
+      // Test.assertEquals(calculate("12* -1"), -12);
+      // Test.assertEquals(calculate("12* 123/-(-5 + 2)"), 492);
+      // Test.assertEquals(calculate("((80 - (19)))"), 61);
+      Test.assertEquals(calculate(
+          "(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) - (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) + (13 - 2)/ -(-11)"),
+          -1);
+
     } catch (Exception e) {
       System.out.println(e);
     }

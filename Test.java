@@ -10,7 +10,7 @@ public class Test {
     int expectedLen = expected.length();
     int min = Math.min(actualLen, expectedLen);
 
-    boolean differentLen = actualLen == expectedLen;
+    boolean isDifferentLength = actualLen != expectedLen;
 
     String buffer = "";
     for (int i = 0; i < min; i++) {
@@ -23,7 +23,7 @@ public class Test {
       }
       buffer += " ";
     }
-    if (differentLen) {
+    if (isDifferentLength) {
       throw new Exception(description + " Failed! ❌" +
           "\n\nNot equals!\n" +
           "Expected: '" + expected + "'\n" +
@@ -39,11 +39,16 @@ public class Test {
 
   ////////////////////////// NUMBER ///////////////////////////////
   public static void assertEquals(Number actual, Number expected, String description) throws Exception {
+
+    if (actual.doubleValue() == expected.doubleValue()) {
+      System.out.println(description + " Passed! ✅");
+      return;
+    }
     assertEquals(String.valueOf(actual), String.valueOf(expected), description);
   }
 
   public static void assertEquals(Number actual, Number expected) throws Exception {
-    assertEquals(String.valueOf(actual), String.valueOf(expected));
+    assertEquals(actual, expected, "");
   }
 
 }
