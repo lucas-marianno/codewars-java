@@ -77,48 +77,33 @@ public class MathEvaluator {
   public static double calculate(String expression) {
     expression = cleanExpr(expression);
 
-    while (expression.indexOf("(") != -1) {
+    while (expression.indexOf("(") != -1)
       expression = calcInnerPar(expression);
-    }
 
-    int lastSignIndex = getLastIndexOfSign(expression);
+    int signIndex = getSignIndex(expression);
 
-    if (lastSignIndex == -1) {
+    if (signIndex == -1)
       return Double.parseDouble(expression);
-    }
-    char sign = expression.charAt(lastSignIndex);
 
-    String firstTerm = expression.substring(0, lastSignIndex);
-    String lastTerm = expression.substring(lastSignIndex + 1);
+    String firstTerm = expression.substring(0, signIndex);
+    String lastTerm = expression.substring(signIndex + 1);
 
     double termA;
-    double termB = Double.parseDouble(lastTerm);
+    double termB;
 
-    int beforeLastSignIndex = getLastIndexOfSign(firstTerm);
+    char sign = expression.charAt(signIndex);
 
-    if (lastSignIndex - 1 == beforeLastSignIndex) {// adjacent signs
-      lastTerm = sign + lastTerm;
-      termB = Double.parseDouble(lastTerm);
-      sign = firstTerm.charAt(beforeLastSignIndex);
-      firstTerm = firstTerm.substring(0, firstTerm.length() - 1);
-      beforeLastSignIndex = getLastIndexOfSign(firstTerm);
-    }
+    int prevSignIndex = getSignIndex(firstTerm);
+    if (prevSignIndex != -1 && getSignPriority(sign) > getSignPriority(firstTerm.charAt(prevSignIndex))) {
+      // if firstTerm has sign AND is of lower priority in the order of operations
+      sign = firstTerm.charAt(prevSignIndex);
 
-    if (beforeLastSignIndex == -1) { // no sign on termA
-      termA = Double.parseDouble(firstTerm);
+      termA = calculate(expression.substring(0, prevSignIndex));
+      termB = calculate(expression.substring(prevSignIndex + 1));
+
     } else {
-      char beforeLastSign = firstTerm.charAt(beforeLastSignIndex);
-
-      if (getSignValue(sign) > getSignValue(beforeLastSign)) {
-
-        double midTerm = Double.parseDouble(firstTerm.substring(beforeLastSignIndex + 1));
-
-        firstTerm = firstTerm.substring(0, beforeLastSignIndex);
-        termB = evalTerms(midTerm, termB, sign);
-        sign = beforeLastSign;
-      }
-
       termA = calculate(firstTerm);
+      termB = calculate(lastTerm);
     }
 
     return evalTerms(termA, termB, sign);
@@ -135,8 +120,10 @@ public class MathEvaluator {
   }
 
   private static String calcInnerPar(String expr) {
+    if (expr.indexOf("(") == -1)
+      return expr;
 
-    // match only the innermost parenthesized expressions that do not contain
+    // match only the innermost parenthesized expressions that does not contain
     // other parentheses.
     Pattern pattern = Pattern.compile("(\\([^\\(\\)]*\\))");
     Matcher matcher = pattern.matcher(expr);
@@ -144,12 +131,8 @@ public class MathEvaluator {
     String replaced = matcher.replaceAll(match -> {
       String m = match.group();
 
-      try {
-        String mtNoPar = m.substring(1, m.length() - 1);
-        return String.valueOf(calculate(mtNoPar));
-      } catch (Exception e) {
-        return m;
-      }
+      String mtNoPar = m.substring(1, m.length() - 1);
+      return String.valueOf(calculate(mtNoPar));
     });
 
     return cleanExpr(replaced);
@@ -171,7 +154,7 @@ public class MathEvaluator {
   }
 
   /**
-   * Returns the last index of a sign in a math expr as string.
+   * Returns the index of right-most sign in a math expr as string.
    *
    * index `0` WILL NOT be checked. (the only sign that can be first is `-`
    * therefore it should be considered negation anyways)
@@ -179,13 +162,18 @@ public class MathEvaluator {
    * @param s String
    * @return
    */
-  private static int getLastIndexOfSign(String s) {
+  private static int getSignIndex(String s) {
     for (int i = s.length() - 1; i > 0; i--) {
-      if ("-+*/".indexOf(s.charAt(i)) != -1) {
-        return i;
-      }
+      if (!isSign(s.charAt(i)))
+        continue;
+
+      return isSign(s.charAt(i - 1)) ? i - 1 : i;
     }
     return -1;
+  }
+
+  private static boolean isSign(char c) {
+    return "-+*/".indexOf(c) != -1;
   }
 
   /**
@@ -198,7 +186,7 @@ public class MathEvaluator {
    * @param sign
    * @return
    */
-  private static int getSignValue(char sign) {
+  private static int getSignPriority(char sign) {
     switch (sign) {
       case '*':
       case '/':
@@ -213,24 +201,24 @@ public class MathEvaluator {
 
   public static void testCalculator() {
     try {
-      // Test.assertEquals(calculate("1+1"), 2, "addition");
-      // Test.assertEquals(calculate("1 - 1"), 0, "Subtraction");
-      // Test.assertEquals(calculate("1* 1"), 1, "Multiplication");
-      // Test.assertEquals(calculate("1 /1"), 1, "division");
-      // Test.assertEquals(calculate("2*4-3"), 5, "expression");
-      // Test.assertEquals(calculate("2-4*3"), -10, "expression 2");
-      // Test.assertEquals(calculate("2*(4-3)"), 2, "parentheses");
-      // Test.assertEquals(calculate("-123"), -123);
-      // Test.assertEquals(calculate("123"), 123);
-      // Test.assertEquals(calculate("2 /2+3 * 4.75- -6"), 21.25);
-      // Test.assertEquals(calculate("12* 123"), 1476);
-      // Test.assertEquals(calculate("2 / (2 + 3) * 4.33 - -6"), 7.732);
-      // Test.assertEquals(calculate("12* -1"), -12);
-      // Test.assertEquals(calculate("12* 123/-(-5 + 2)"), 492);
-      // Test.assertEquals(calculate("((80 - (19)))"), 61);
+      Test.assertEquals(calculate("1+1"), 2, "addition");
+      Test.assertEquals(calculate("1 - 1"), 0, "Subtraction");
+      Test.assertEquals(calculate("1* 1"), 1, "Multiplication");
+      Test.assertEquals(calculate("1 /1"), 1, "division");
+      Test.assertEquals(calculate("2*4-3"), 5, "expression");
+      Test.assertEquals(calculate("2-4*3"), -10, "expression 2");
+      Test.assertEquals(calculate("2*(4-3)"), 2, "parentheses");
+      Test.assertEquals(calculate("-123"), -123);
+      Test.assertEquals(calculate("123"), 123);
+      Test.assertEquals(calculate("2 /2+3 * 4.75- -6"), 21.25);
+      Test.assertEquals(calculate("12* 123"), 1476);
+      Test.assertEquals(calculate("2 / (2 + 3) * 4.33 - -6"), 7.732);
+      Test.assertEquals(calculate("12* -1"), -12);
+      Test.assertEquals(calculate("12* 123/-(-5 + 2)"), 492);
+      Test.assertEquals(calculate("((80 - (19)))"), 61);
       Test.assertEquals(calculate(
           "(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) - (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) + (13 - 2)/ -(-11)"),
-          -1);
+          1);
 
     } catch (Exception e) {
       System.out.println(e);
