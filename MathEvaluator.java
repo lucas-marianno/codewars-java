@@ -139,18 +139,13 @@ public class MathEvaluator {
   }
 
   private static double evalTerms(double termA, double termB, char sign) {
-    switch (sign) {
-      case '+':
-        return termA + termB;
-      case '-':
-        return termA - termB;
-      case '*':
-        return termA * termB;
-      case '/':
-        return termA / termB;
-      default:
-        return 0;
-    }
+    return switch (sign) {
+      case '+' -> termA + termB;
+      case '-' -> termA - termB;
+      case '*' -> termA * termB;
+      case '/' -> termA / termB;
+      default -> 0;
+    };
   }
 
   /**
@@ -187,16 +182,13 @@ public class MathEvaluator {
    * @return
    */
   private static int getSignPriority(char sign) {
-    switch (sign) {
-      case '*':
-      case '/':
-        return 1;
-      case '+':
-      case '-':
-        return 0;
-      default:
-        return -1;
-    }
+    return switch (sign) {
+      case '*' -> 1;
+      case '/' -> 1;
+      case '+' -> 0;
+      case '-' -> 0;
+      default -> -1;
+    };
   }
 
   public static void testCalculator() {
